@@ -3,1159 +3,570 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KrakatauPulse - Sentimen Publik Abu Vulkanik Anak Krakatau</title>
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Google Fonts: Plus Jakarta Sans -->
+  <meta name="description" content="Dashboard komentar dan sentimen masyarakat tentang abu vulkanik Anak Krakatau.">
+  <meta name="theme-color" content="#245d47">
+  <title>KrakatauPulse — Suara Publik Anak Krakatau</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23245d47'/%3E%3Cpath d='M12 47 27 24h10l15 23M27 24l5 7 5-7M32 16v-5' fill='none' stroke='%23e1f0df' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-          },
-          colors: {
-            pastel: {
-              mint: '#d8f3dc',
-              sage: '#b7e4c7',
-              leaf: '#74c69d',
-              forest: '#40916c',
-              darkgreen: '#1b4332',
-              rose: '#ffe5ec',
-              blush: '#ffc2d1',
-              pink: '#ffb3c6',
-              deepblush: '#ff8fab',
-              berry: '#fb6f92',
-              cream: '#fafdfb',
-              card: 'rgba(255, 255, 255, 0.88)'
-            }
-          },
-          boxShadow: {
-            'soft': '0 10px 25px -5px rgba(183, 228, 199, 0.35), 0 8px 10px -6px rgba(255, 194, 209, 0.25)',
-            'glass': '0 8px 32px 0 rgba(116, 198, 157, 0.15)',
-          }
-        }
-      }
-    }
-  </script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <style>
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: linear-gradient(135deg, #f0fbf4 0%, #fff0f5 50%, #e8f7ee 100%);
-      min-height: 100vh;
-      color: #2d3748;
+    :root {
+      --background: #f6f8f5;
+      --surface: #ffffff;
+      --ink: #24382e;
+      --muted: #66756d;
+      --line: #e0e7df;
+      --green: #245d47;
+      --green-light: #e7f1e6;
+      --green-chart: #75a68c;
+      --pink: #a54163;
+      --pink-light: #fbeef2;
+      --pink-chart: #db9aae;
+      --neutral: #eef1ee;
+      --neutral-chart: #b8c5bc;
+      --radius: 18px;
+      --shadow: 0 8px 32px rgb(36 56 46 / 4%);
     }
-    
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+    body { margin: 0; background: var(--background); color: var(--ink); font: 14px/1.6 "Plus Jakarta Sans", sans-serif; }
+    button, input, select, textarea { font: inherit; }
+    button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+    button, select { cursor: pointer; }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    h1, h2, h3, p { margin: 0; }
+    h2 { font-size: 20px; line-height: 1.35; letter-spacing: -.5px; }
+    h3 { font-size: 17px; line-height: 1.4; letter-spacing: -.3px; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    .container { width: min(1180px, calc(100% - 64px)); margin: 0 auto; }
+    .icon { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .muted { color: var(--muted); }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 1.7px; text-transform: uppercase; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 12px 20px; border-radius: 8px; background: var(--green); color: white; }
+    .skip-link:focus { top: 12px; }
+    .site-header { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: var(--surface); }
+    .header-inner { min-height: 80px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 11px; color: var(--ink); }
+    .brand:hover { text-decoration: none; }
+    .brand-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--green); color: var(--green-light); }
+    .brand-mark .icon { width: 27px; height: 27px; }
+    .brand-name { display: block; font-size: 19px; font-weight: 800; letter-spacing: -.7px; }
+    .brand-caption { display: block; color: var(--muted); font-size: 10px; }
+    .header-nav { display: flex; gap: 28px; font-size: 12px; font-weight: 600; }
+    .header-nav a { color: var(--muted); }
+    .header-nav a:hover { color: var(--green); }
+    .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 700; transition: background .15s, border-color .15s; }
+    .button:hover { background: var(--neutral); text-decoration: none; }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { background: #184833; }
+    .button.soft { border-color: transparent; background: var(--green-light); color: var(--green); }
+    .button:disabled { cursor: wait; opacity: .6; }
+    .button .icon { width: 17px; height: 17px; }
+    main { padding-top: 36px; padding-bottom: 48px; }
+    .hero { display: grid; grid-template-columns: 1fr 310px; align-items: center; gap: 48px; padding: 38px 40px; border: 1px solid #d6e5d5; border-radius: 24px; background: #edf4e9; }
+    .hero h1 { margin: 12px 0 16px; font-size: clamp(30px, 3.4vw, 43px); line-height: 1.2; letter-spacing: -1.7px; font-weight: 800; }
+    .hero h1 span { color: var(--green); }
+    .hero-copy > p { max-width: 570px; color: var(--muted); line-height: 1.8; }
+    .hero-copy .actions { margin-top: 24px; }
+    .hero .text-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px; font-size: 12px; font-weight: 700; }
+    .source-card { position: relative; overflow: hidden; padding: 24px; border: 1px solid #d6e5d5; border-radius: var(--radius); background: var(--surface); }
+    .source-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 6px; background: var(--green-light); color: var(--green); font-size: 10px; font-weight: 700; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .source-card h2 { margin-top: 20px; font-size: 17px; }
+    .source-card p { margin-top: 8px; font-size: 12px; }
+    .source-card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; }
+    .source-card-bottom strong { font-size: 12px; font-variant-numeric: tabular-nums; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 32px 0 18px; }
+    .section-heading > div > p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .section-kicker { color: var(--muted); font-size: 11px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .stat-card { padding: 20px 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .stat-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: var(--green); background: var(--green-light); }
+    .stat-icon .icon { width: 18px; height: 18px; }
+    .stat-card.negative .stat-icon { color: var(--pink); background: var(--pink-light); }
+    .stat-card.neutral .stat-icon { color: var(--muted); background: var(--neutral); }
+    .stat-value { display: block; margin: 12px 0 5px; font-size: 29px; line-height: 1.3; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+    .stat-card.positive .stat-value { color: var(--green); }
+    .stat-card.negative .stat-value { color: var(--pink); }
+    .stat-detail { color: var(--muted); font-size: 11px; }
+    .charts-grid { display: grid; grid-template-columns: .95fr 1.4fr; gap: 20px; margin-top: 20px; }
+    .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .chart-panel { padding: 24px; min-width: 0; }
+    .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .panel-heading .icon { color: var(--muted); width: 18px; height: 18px; }
+    .chart-panel > p { margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .doughnut-wrap { position: relative; height: 205px; width: 205px; margin: 20px auto; }
+    .chart-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .chart-center strong { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+    .chart-center span { color: var(--muted); font-size: 11px; }
+    .sentiment-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .sentiment-legend div { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 11px; }
+    .legend-label { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+    .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-chart); }
+    .legend-dot.neutral { background: var(--neutral-chart); }
+    .legend-dot.negative { background: var(--pink-chart); }
+    .sentiment-legend strong { font-variant-numeric: tabular-nums; }
+    .bar-wrap { position: relative; height: 230px; margin-top: 20px; }
+    .topic-footnote { padding-top: 16px; margin-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .chart-fallback { padding: 18px; border-radius: 10px; background: var(--neutral); }
+    .data-heading h2 { display: flex; align-items: center; gap: 10px; }
+    .count-badge { padding: 3px 8px; border-radius: 6px; background: var(--green-light); color: var(--green); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .filter-panel { display: grid; grid-template-columns: 1fr 245px auto; align-items: end; gap: 16px; padding: 18px 20px; margin-bottom: 18px; }
+    .field label { display: block; margin-bottom: 7px; color: var(--ink); font-size: 11px; font-weight: 700; }
+    .input-wrap { position: relative; }
+    .input-wrap .icon { position: absolute; left: 13px; top: 13px; width: 17px; height: 17px; color: var(--muted); }
+    input, select, textarea { width: 100%; min-height: 44px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-size: 13px; }
+    .input-wrap input { padding-left: 39px; }
+    input::placeholder, textarea::placeholder { color: #76837c; opacity: 1; }
+    textarea { min-height: 110px; resize: vertical; line-height: 1.7; }
+    .results-summary { margin: 0 0 14px; color: var(--muted); font-size: 11px; }
+    .posts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .post-card { display: flex; flex-direction: column; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .post-top { display: flex; align-items: flex-start; gap: 10px; }
+    .avatar { display: grid; place-items: center; flex-shrink: 0; width: 37px; height: 37px; border-radius: 11px; background: var(--green-light); color: var(--green); font-size: 12px; font-weight: 800; }
+    .author-info { min-width: 0; flex: 1; }
+    .author-info h3 { font-size: 12px; font-weight: 700; letter-spacing: 0; overflow-wrap: anywhere; }
+    .author-info p { margin-top: 2px; font-size: 10px; color: var(--muted); }
+    .sentiment-badge { display: inline-flex; align-items: center; flex-shrink: 0; gap: 5px; padding: 4px 8px; border-radius: 6px; background: var(--green-light); color: var(--green); font-size: 10px; font-weight: 700; }
+    .sentiment-badge.negative { background: var(--pink-light); color: var(--pink); }
+    .sentiment-badge.neutral { background: var(--neutral); color: var(--muted); }
+    .post-text { margin: 16px 0; flex: 1; font-size: 13px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .post-title { margin: 14px 0 -6px; font-size: 13px; font-weight: 700; line-height: 1.6; }
+    .post-expand { margin: 0 0 14px; font-size: 12px; }
+    .post-expand summary { cursor: pointer; color: var(--green); font-weight: 700; }
+    .post-expand p { margin-top: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .post-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+    .post-bottom span, .post-bottom a { display: inline-flex; align-items: center; gap: 5px; }
+    .post-bottom .icon { width: 13px; height: 13px; }
+    .source-note { display: block; margin-top: 10px; font-size: 10px; color: var(--muted); }
+    .empty-state { grid-column: 1 / -1; padding: 48px 20px; text-align: center; border: 1px dashed var(--line); border-radius: var(--radius); }
+    .empty-state > .icon { width: 32px; height: 32px; color: var(--muted); margin-bottom: 12px; }
+    .empty-state p { margin-top: 6px; font-size: 12px; color: var(--muted); }
+    .load-more-wrap { margin-top: 20px; text-align: center; }
+    .dataset-note { display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; margin-top: 28px; border: 1px solid var(--line); border-radius: 12px; background: #eff3ee; font-size: 11px; color: var(--muted); }
+    .dataset-note .icon { width: 17px; height: 17px; margin-top: 2px; }
+    .dataset-note strong { color: var(--ink); }
+    .site-footer { border-top: 1px solid var(--line); background: var(--surface); }
+    .footer-inner { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 22px; padding-bottom: 22px; color: var(--muted); font-size: 11px; }
+    .footer-inner strong { color: var(--ink); font-weight: 700; }
+    dialog { width: min(500px, calc(100% - 32px)); max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); box-shadow: 0 24px 80px rgb(20 40 30 / 20%); }
+    dialog::backdrop { background: rgb(21 37 28 / 45%); }
+    body:has(dialog[open]) { overflow: hidden; }
+    .dialog-content { padding: 28px; }
+    .dialog-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+    .dialog-heading h2 { font-size: 22px; }
+    .dialog-heading p { margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .close-button { min-width: 40px; min-height: 40px; padding: 8px; }
+    .dialog-content .field { margin-top: 18px; }
+    .dialog-content .actions { margin-top: 24px; justify-content: flex-end; }
+    .dialog-note { padding: 16px; border-radius: 12px; background: var(--green-light); color: var(--green); font-size: 12px; }
+    .dialog-note p + p { margin-top: 10px; }
+    .result-box { padding: 16px; margin-top: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--background); font-size: 12px; }
+    .result-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .result-box p { margin-top: 6px; color: var(--muted); overflow-wrap: anywhere; }
+    .inline-message { margin-top: 16px; color: var(--pink); font-size: 12px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 50; max-width: min(380px, calc(100vw - 48px)); padding: 14px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--ink); color: white; box-shadow: var(--shadow); font-size: 12px; }
+    @media (max-width: 1000px) {
+      .header-nav { display: none; }
+      .hero { grid-template-columns: 1fr 280px; gap: 28px; padding: 30px; }
+      .hero h1 { font-size: 34px; }
+      .charts-grid { grid-template-columns: 1fr 1.3fr; }
+      .stat-card { padding: 18px; }
+      .filter-panel { grid-template-columns: 1fr 210px; }
+      .filter-panel > .button { grid-column: 1 / -1; justify-self: start; }
     }
-
-    .pulse-dot {
-      animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    @media (max-width: 700px) {
+      .container { width: calc(100% - 32px); }
+      .header-inner { min-height: 72px; gap: 12px; }
+      .brand-name { font-size: 17px; }
+      .brand-mark { width: 36px; height: 36px; border-radius: 10px; }
+      .brand-caption { font-size: 9px; }
+      .header-inner .actions { gap: 6px; flex-wrap: nowrap; }
+      .header-inner .button { padding: 10px; }
+      .header-inner .button.primary { padding: 10px 9px; gap: 6px; font-size: 11px; }
+      .source-button-label { display: none; }
+      main { padding-top: 20px; }
+      .hero { grid-template-columns: 1fr; gap: 24px; padding: 25px; }
+      .hero h1 { font-size: 32px; letter-spacing: -1.3px; }
+      .hero-copy > p { font-size: 13px; }
+      .hero-copy .actions { margin-top: 18px; }
+      .source-card { padding: 18px 20px; }
+      .source-card h2 { margin-top: 12px; }
+      .source-card-bottom { margin-top: 14px; padding-top: 12px; }
+      .section-heading { margin-top: 26px; align-items: flex-start; }
+      .section-kicker { max-width: 110px; text-align: right; font-size: 10px; }
+      h2 { font-size: 18px; }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .stat-card { padding: 16px; }
+      .stat-top { font-size: 11px; }
+      .stat-value { font-size: 27px; }
+      .stat-icon { width: 27px; height: 27px; }
+      .charts-grid, .posts-grid { grid-template-columns: 1fr; }
+      .chart-panel { padding: 22px; }
+      .data-heading { align-items: center; }
+      .data-heading > div { min-width: 0; }
+      .data-heading .button { padding: 10px 12px; flex-shrink: 0; }
+      .filter-panel { grid-template-columns: 1fr; padding: 18px; gap: 12px; }
+      .filter-panel > .button { grid-column: auto; width: 100%; }
+      input, select, textarea { font-size: 16px; }
+      .post-card { padding: 20px; }
+      .post-text { font-size: 14px; }
+      .dialog-content { padding: 22px; }
+      .dialog-content .actions .button { flex: 1; }
+      .footer-inner { font-size: 10px; }
     }
-
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.15); }
+    @media (max-width: 360px) {
+      .brand-caption { display: none; }
+      .brand { gap: 8px; }
+      .brand-name { font-size: 15px; }
+      .brand-mark { width: 28px; height: 28px; }
+      .header-inner { gap: 6px; }
+      .header-inner .button .icon { display: none; }
+      .header-inner .source-button .icon { display: block; }
     }
-
-    /* Custom Pastel Scrollbar */
-    ::-webkit-scrollbar {
-      width: 7px;
-      height: 7px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f8f3;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #b7e4c7;
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #ffb3c6;
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
     }
   </style>
 </head>
-<body class="antialiased text-slate-800">
-
-  <header class="sticky top-0 z-40 glass-panel border-b border-pastel-sage/40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-      <!-- Logo & Subtitle -->
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pastel-leaf via-pastel-sage to-pastel-blush flex items-center justify-center shadow-md transform hover:rotate-6 transition-transform">
-          <i class="fa-solid fa-volcano text-white text-xl"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-pastel-forest via-emerald-600 to-pastel-berry bg-clip-text text-transparent">
-              KrakatauPulse
-            </h1>
-            <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-pastel-mint text-pastel-darkgreen border border-pastel-sage">
-              Siaga III
-            </span>
-          </div>
-          <p class="text-xs text-slate-500 font-medium">Analisis Sentimen Warga • Abu Vulkanik Selat Sunda</p>
-        </div>
-      </div>
-
-      <!-- Quick Action Buttons & Status -->
-      <div class="flex items-center gap-2 sm:gap-4">
-        <!-- Live status indicator -->
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-pastel-rose/80 border border-pastel-pink text-xs font-medium text-pastel-berry">
-          <span class="w-2.5 h-2.5 rounded-full bg-pastel-berry pulse-dot"></span>
-          <span>Pemantauan Aktif</span>
-        </div>
-
-        <!-- Apify Config Button -->
-        <button id="btnOpenApifyModal" class="px-3.5 py-2 rounded-xl bg-pastel-mint hover:bg-pastel-sage text-pastel-darkgreen text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-sm">
-          <i class="fa-solid fa-cloud-arrow-down text-pastel-forest"></i>
-          <span class="hidden sm:inline">Koneksi Apify</span>
+<body>
+  <svg class="sr-only" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-volcano" viewBox="0 0 24 24"><path d="m3 20 6-11h6l6 11H3Zm6-11 3 3 3-3M12 5V2M8 5 6 3M16 5l2-2"/></symbol>
+    <symbol id="icon-comment" viewBox="0 0 24 24"><path d="M21 11a8 8 0 0 1-8 8H6l-4 3V11a8 8 0 0 1 8-8h3a8 8 0 0 1 8 8Z"/><path d="M7 9h9M7 13h6"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7h.01"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2"/></symbol>
+    <symbol id="icon-link" viewBox="0 0 24 24"><path d="m10 14 4-4M8 16l-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M16 8l2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(2 0) scale(.85 1)"/></symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 3v17h17M8 15v-4M13 15V7M18 15v-6"/></symbol>
+    <symbol id="icon-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 9h.01M16 9h.01M8 14c2 3 6 3 8 0"/></symbol>
+    <symbol id="icon-neutral" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 9h.01M16 9h.01M8 15h8"/></symbol>
+    <symbol id="icon-frown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 9h.01M16 9h.01M8 16c2-3 6-3 8 0"/></symbol>
+  </svg>
+  <a class="skip-link" href="#main">Langsung ke konten</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#main" aria-label="KrakatauPulse, kembali ke awal">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-volcano"/></svg></span>
+        <span><span class="brand-name">KrakatauPulse<span style="color:var(--pink)">.</span></span><span class="brand-caption">Suara publik · Anak Krakatau</span></span>
+      </a>
+      <nav class="header-nav" aria-label="Navigasi utama">
+        <a href="#ringkasan">Ringkasan</a>
+        <a href="#komentar">Data komentar</a>
+      </nav>
+      <div class="actions">
+        <button id="btnOpenApifyModal" class="button source-button" type="button" aria-label="Tentang sumber data">
+          <svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg><span class="source-button-label">Sumber data</span>
         </button>
-
-        <!-- New Sentiment Simulator Button -->
-        <button id="btnOpenAnalyzeModal" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-pastel-deepblush to-pastel-berry hover:opacity-95 text-white text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-sm hover:shadow">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span>Uji Sentimen</span>
+        <button id="btnOpenAnalyzeModal" class="button primary" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg>Uji sentimen
         </button>
       </div>
     </div>
   </header>
 
-  <div id="toastContainer" class="fixed top-24 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"></div>
-
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-    <section class="glass-panel rounded-3xl p-6 sm:p-8 shadow-soft border border-pastel-blush/40 relative overflow-hidden">
-      <!-- Decorative Pastel Glows -->
-      <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-pastel-blush/30 blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-pastel-sage/40 blur-3xl pointer-events-none"></div>
-
-      <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div class="max-w-3xl space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pastel-mint/80 border border-pastel-sage text-pastel-darkgreen text-xs font-semibold">
-            <i class="fa-solid fa-wind"></i>
-            <span>Arah Angin: Dominan ke Timur Laut - Timur (Cilegon, Serang, Anyer)</span>
-          </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-800 leading-tight">
-            Sentimen Publik Terhadap Erupsi & Sebaran Abu Vulkanik
-          </h2>
-          <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
-            Data opini publik yang dikurasi dari platform digital, portal berita, dan laporan warga di wilayah Banten dan Lampung Selatan. Membantu pemangku kebijakan dan warga melihat persepsi risiko, kepatuhan masker, serta kekhawatiran transportasi.
-          </p>
+  <main id="main" class="container">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Observasi sentimen masyarakat</p>
+        <h1 id="hero-title">Suara publik,<br><span>lebih mudah dipahami.</span></h1>
+        <p>Eksplorasi komentar tentang abu vulkanik Anak Krakatau. Lihat sentimennya, temukan topik yang dibahas, dan telusuri sumber setiap opini.</p>
+        <div class="actions">
+          <a class="button primary" href="#komentar">Jelajahi komentar <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+          <a class="text-link" href="#ringkasan">Lihat ringkasan</a>
         </div>
+      </div>
+      <aside class="source-card" aria-label="Status sumber dataset">
+        <div class="source-card-top"><span class="eyebrow">Dataset</span><span id="datasetStatus" class="status"><span class="status-dot"></span>Data contoh</span></div>
+        <h2 id="datasetTitle">Pratinjau 8 komentar</h2>
+        <p id="datasetDescription" class="muted">Komentar simulasi untuk menjelajahi dashboard. Belum berasal dari dataset Apify.</p>
+        <div class="source-card-bottom"><span class="muted">Komentar tersedia</span><strong id="headerTotalPostCount">8 data</strong></div>
+      </aside>
+    </section>
 
-        <!-- Realtime Apify Status Card -->
-        <div class="bg-white/90 p-4 rounded-2xl border border-pastel-pink/60 shadow-sm flex flex-col gap-2 min-w-[250px]">
-          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
-            <span>Sumber Data Apify</span>
-            <span class="text-emerald-600 flex items-center gap-1 font-bold">
-              <i class="fa-solid fa-circle-check"></i> Terhubung
-            </span>
+    <section id="ringkasan" aria-labelledby="summary-title">
+      <div class="section-heading"><div><h2 id="summary-title">Sekilas percakapan</h2><p>Ringkasan dari seluruh komentar dalam dataset.</p></div><span id="summarySource" class="section-kicker">Pratinjau · data contoh</span></div>
+      <div class="stats-grid">
+        <article class="stat-card">
+          <div class="stat-top">Total data<span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#icon-comment"/></svg></span></div>
+          <strong id="statTotalPosts" class="stat-value">8</strong><p class="stat-detail">Dalam dataset saat ini</p>
+        </article>
+        <article class="stat-card positive">
+          <div class="stat-top">Positif<span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#icon-smile"/></svg></span></div>
+          <strong id="statPositifPercent" class="stat-value">37,5%</strong><p id="positiveCount" class="stat-detail">3 komentar</p>
+        </article>
+        <article class="stat-card neutral">
+          <div class="stat-top">Netral<span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#icon-neutral"/></svg></span></div>
+          <strong id="statNetralPercent" class="stat-value">25,0%</strong><p id="neutralCount" class="stat-detail">2 komentar</p>
+        </article>
+        <article class="stat-card negative">
+          <div class="stat-top">Negatif<span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="#icon-frown"/></svg></span></div>
+          <strong id="statNegatifPercent" class="stat-value">37,5%</strong><p id="negativeCount" class="stat-detail">3 komentar</p>
+        </article>
+      </div>
+      <div class="charts-grid">
+        <article class="panel chart-panel">
+          <div class="panel-heading"><h3>Distribusi sentimen</h3><svg class="icon" aria-hidden="true"><use href="#icon-comment"/></svg></div>
+          <p>Bagaimana opini dalam dataset terbagi.</p>
+          <div class="doughnut-wrap">
+            <canvas id="sentimentPieChart" aria-hidden="true"></canvas>
+            <div class="chart-center" aria-hidden="true"><strong id="chartTotal">8</strong><span>opini</span></div>
           </div>
-          <div class="text-xs font-mono bg-slate-50 p-2 rounded-lg text-slate-600 truncate border border-slate-100" title="apify_api_YmNst17LVS4bGvijPKBg9lZDRw4q0P205YIs">
-            <span class="text-pastel-berry font-semibold">Key:</span> apify_api_...05YIs
+          <div class="sentiment-legend" aria-label="Persentase sentimen">
+            <div><span class="legend-label"><span class="legend-dot"></span>Positif</span><strong id="pieValPositif">37,5%</strong></div>
+            <div><span class="legend-label"><span class="legend-dot neutral"></span>Netral</span><strong id="pieValNetral">25,0%</strong></div>
+            <div><span class="legend-label"><span class="legend-dot negative"></span>Negatif</span><strong id="pieValNegatif">37,5%</strong></div>
           </div>
-          <div class="flex items-center justify-between text-xs pt-1">
-            <span class="text-slate-400">Total Analisis:</span>
-            <span id="headerTotalPostCount" class="font-bold text-slate-800 text-sm">1.842 Data</span>
-          </div>
-        </div>
+        </article>
+        <article class="panel chart-panel">
+          <div class="panel-heading"><h3>Topik dalam komentar</h3><svg class="icon" aria-hidden="true"><use href="#icon-chart"/></svg></div>
+          <p>Jumlah komentar untuk setiap kategori pembahasan.</p>
+          <div class="bar-wrap"><canvas id="issuesBarChart" role="img" aria-label="Jumlah komentar menurut kategori" aria-describedby="issuesDescription"></canvas></div>
+          <p id="issuesDescription" class="sr-only"></p>
+          <p id="chartFallback" class="chart-fallback" hidden></p>
+          <div class="topic-footnote">Kategori dihitung dari dataset yang ditampilkan, bukan statistik aktivitas gunung.</div>
+        </article>
       </div>
     </section>
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-      <!-- Card 1: Total Aspirasi -->
-      <div class="glass-panel p-5 rounded-2xl border border-pastel-sage/50 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Unggahan Warga</p>
-          <h3 id="statTotalPosts" class="text-2xl font-black text-slate-800 mt-1">1.842</h3>
-          <p class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
-            <i class="fa-solid fa-arrow-trend-up"></i> +18% sejak 24 jam lalu
-          </p>
-        </div>
-        <div class="w-12 h-12 rounded-2xl bg-pastel-mint flex items-center justify-center text-pastel-forest group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-comments text-xl"></i>
-        </div>
+    <section id="komentar" aria-labelledby="posts-title">
+      <div class="section-heading data-heading">
+        <div><h2 id="posts-title">Komentar &amp; unggahan <span id="datasetCount" class="count-badge">8</span></h2><p>Cari opini dan saring berdasarkan sentimennya.</p></div>
+        <button id="btnExportData" class="button" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg>Ekspor CSV</button>
       </div>
-
-      <!-- Card 2: Sentimen Negatif/Kekhawatiran -->
-      <div class="glass-panel p-5 rounded-2xl border border-pastel-pink/50 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kekhawatiran & Keluhan</p>
-          <h3 id="statNegatifPercent" class="text-2xl font-black text-pastel-berry mt-1">46.5%</h3>
-          <p class="text-xs text-pastel-berry font-medium mt-1">
-            Dominan: ISPA, Debu Rumah, Bau Belerang
-          </p>
-        </div>
-        <div class="w-12 h-12 rounded-2xl bg-pastel-rose flex items-center justify-center text-pastel-berry group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-face-frown-open text-xl"></i>
-        </div>
+      <div class="panel filter-panel">
+        <div class="field"><label for="searchInput">Cari komentar</label><div class="input-wrap"><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg><input id="searchInput" type="search" placeholder="Kata kunci, penulis, atau lokasi…" maxlength="200"></div></div>
+        <div class="field"><label for="sentimentFilter">Sentimen</label><select id="sentimentFilter"><option value="ALL">Semua sentimen</option><option value="Positif">Positif</option><option value="Netral">Netral</option><option value="Negatif">Negatif</option></select></div>
+        <button id="btnResetFilters" class="button" type="button">Bersihkan filter</button>
       </div>
-
-      <!-- Card 3: Sentimen Netral / Laporan Situasi -->
-      <div class="glass-panel p-5 rounded-2xl border border-pastel-sage/50 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Netral & Informasi BMKG</p>
-          <h3 id="statNetralPercent" class="text-2xl font-black text-slate-700 mt-1">33.2%</h3>
-          <p class="text-xs text-slate-500 font-medium mt-1">
-            Update PVMBG, CCTV MAGMA, Citra Satelit
-          </p>
-        </div>
-        <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-600 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-bullhorn text-xl"></i>
-        </div>
-      </div>
-
-      <!-- Card 4: Sentimen Positif / Kesiagaan & Doa -->
-      <div class="glass-panel p-5 rounded-2xl border border-pastel-blush/50 shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Positif, Doa & Apresiasi</p>
-          <h3 id="statPositifPercent" class="text-2xl font-black text-emerald-600 mt-1">20.3%</h3>
-          <p class="text-xs text-emerald-600 font-medium mt-1">
-            Bagi-bagi masker, mitigasi BPBD sigap
-          </p>
-        </div>
-        <div class="w-12 h-12 rounded-2xl bg-pastel-sage/50 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-hands-holding-child text-xl"></i>
-        </div>
-      </div>
+      <p class="results-summary" role="status" aria-live="polite">Menampilkan <strong id="displayedCount">0</strong> dari <strong id="totalFilterCount">0</strong> komentar yang sesuai.</p>
+      <div id="postsContainer" class="posts-grid"></div>
+      <div class="load-more-wrap"><button id="btnLoadMore" class="button soft" type="button" hidden>Tampilkan lebih banyak</button></div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Chart 1: Donut Sentimen Breakdown -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-blush/40 shadow-soft flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-chart-pie text-pastel-berry"></i>
-              Distribusi Sentimen
-            </h3>
-            <span class="text-xs bg-pastel-rose text-pastel-berry px-2.5 py-1 rounded-full font-medium">Real-time</span>
-          </div>
-          <p class="text-xs text-slate-500 mb-4">Proporsi sentimen publik terkait sebaran abu vulkanik di media sosial & forum warga.</p>
-        </div>
-        <div class="relative w-full aspect-square max-h-64 mx-auto flex items-center justify-center">
-          <canvas id="sentimentPieChart"></canvas>
-        </div>
-        <div class="grid grid-cols-3 gap-2 text-center text-xs mt-4 pt-4 border-t border-slate-100">
-          <div class="p-2 rounded-xl bg-pastel-mint/60">
-            <p class="text-pastel-darkgreen font-semibold">Positif</p>
-            <p id="pieValPositif" class="font-extrabold text-sm text-emerald-800">20.3%</p>
-          </div>
-          <div class="p-2 rounded-xl bg-slate-100">
-            <p class="text-slate-600 font-semibold">Netral</p>
-            <p id="pieValNetral" class="font-extrabold text-sm text-slate-800">33.2%</p>
-          </div>
-          <div class="p-2 rounded-xl bg-pastel-rose/80">
-            <p class="text-pastel-berry font-semibold">Negatif</p>
-            <p id="pieValNegatif" class="font-extrabold text-sm text-rose-700">46.5%</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chart 2: Timeline Tren Per Hari -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-sage/40 shadow-soft lg:col-span-2 flex flex-col justify-between">
-        <div>
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-            <div>
-              <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-chart-line text-pastel-forest"></i>
-                Tren Sentimen Selama Erupsi Meningkat (7 Hari Terakhir)
-              </h3>
-              <p class="text-xs text-slate-500">Lonjakan volume cuitan dan keluhan saat abu vulkanik menyentuh pesisir barat Banten.</p>
-            </div>
-            <!-- Range Selector -->
-            <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-pastel-sage text-xs">
-              <button class="px-2.5 py-1 rounded-lg bg-pastel-mint text-pastel-darkgreen font-semibold">7 Hari</button>
-              <button class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800">14 Hari</button>
-              <button class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800">30 Hari</button>
-            </div>
-          </div>
-        </div>
-        <div class="w-full h-64 sm:h-72">
-          <canvas id="timelineChart"></canvas>
-        </div>
-        <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100 gap-2">
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-pastel-berry"></span> Kekhawatiran (Abu/ISPA/Bencana)</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-pastel-forest"></span> Edukasi & Bantuan Masker</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Informasi Cuaca & Sebaran</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-      <!-- Top Isu & Topik Utama Warga -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-blush/40 shadow-soft">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-bars-progress text-pastel-berry"></i>
-            Kategori Isu yang Paling Banyak Dikeluhkan
-          </h3>
-          <span class="text-xs text-slate-400 font-medium">Berdasarkan Ekstraksi NLP</span>
-        </div>
-        <div class="h-64 w-full">
-          <canvas id="issuesBarChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Radar Emosi Masyarakat -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-sage/40 shadow-soft">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-compass text-pastel-forest"></i>
-            Spektrum Emosi Publik (Psychological State)
-          </h3>
-          <span class="text-xs text-pastel-forest bg-pastel-mint px-2 py-0.5 rounded-full font-semibold">Tingkat Cemas Moderat</span>
-        </div>
-        <div class="h-64 w-full flex items-center justify-center">
-          <canvas id="emotionRadarChart"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
-      <!-- Wilayah Terdampak & Persepsi -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-sage/40 shadow-soft md:col-span-2 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-map-location-dot text-pastel-forest"></i>
-            Intensitas Laporan Abu Berdasarkan Wilayah
-          </h3>
-          <span class="text-xs text-slate-500">Kecamatan di Selat Sunda & Sekitarnya</span>
-        </div>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <!-- Wilayah 1 -->
-          <div class="p-3.5 rounded-2xl bg-white/80 border border-pastel-blush/60 flex items-center justify-between hover:border-pastel-berry transition-colors">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-slate-800">Anyer & Carita (Banten)</span>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700">Tinggi</span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">Abu tipis ke sedang, wisata pantai terpengaruh</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-rose-600">624 Laporan</span>
-            </div>
-          </div>
-
-          <!-- Wilayah 2 -->
-          <div class="p-3.5 rounded-2xl bg-white/80 border border-pastel-blush/60 flex items-center justify-between hover:border-pastel-berry transition-colors">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-slate-800">Cilegon & Merak</span>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-700">Tinggi</span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">Debu di atap rumah & kendaraan, bau belerang</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-rose-600">512 Laporan</span>
-            </div>
-          </div>
-
-          <!-- Wilayah 3 -->
-          <div class="p-3.5 rounded-2xl bg-white/80 border border-pastel-sage/60 flex items-center justify-between hover:border-pastel-forest transition-colors">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-slate-800">Kalianda & Rajabasa (Lampung)</span>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800">Sedang</span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">Hujan abu ringan saat angin berbelok ke barat</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-amber-700">380 Laporan</span>
-            </div>
-          </div>
-
-          <!-- Wilayah 4 -->
-          <div class="p-3.5 rounded-2xl bg-white/80 border border-pastel-sage/60 flex items-center justify-between hover:border-pastel-forest transition-colors">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-sm text-slate-800">Serang Kota & Pandeglang</span>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">Rendah</span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">Kualitas udara masih kategori sedang, waspada masker</p>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-emerald-700">326 Laporan</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tag Cloud & Kata Kunci Trending -->
-      <div class="glass-panel p-6 rounded-3xl border border-pastel-blush/40 shadow-soft flex flex-col justify-between">
-        <div>
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2 mb-2">
-            <i class="fa-solid fa-tags text-pastel-berry"></i>
-            Kata Kunci Paling Viral
-          </h3>
-          <p class="text-xs text-slate-500 mb-4">Istilah yang paling sering muncul dalam perbincangan.</p>
-          
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1.5 rounded-xl bg-pastel-rose text-pastel-berry text-xs font-bold hover:scale-105 transition-transform cursor-pointer">#AnakKrakatau</span>
-            <span class="px-3 py-1.5 rounded-xl bg-pastel-mint text-pastel-darkgreen text-xs font-bold hover:scale-105 transition-transform cursor-pointer">#AbuVulkanik</span>
-            <span class="px-2.5 py-1 rounded-xl bg-rose-50 text-rose-600 text-xs font-semibold hover:scale-105 transition-transform cursor-pointer">Sesak Nafas</span>
-            <span class="px-3 py-1.5 rounded-xl bg-pastel-sage text-emerald-900 text-xs font-bold hover:scale-105 transition-transform cursor-pointer">Bagi Masker BPBD</span>
-            <span class="px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:scale-105 transition-transform cursor-pointer">Siaga III</span>
-            <span class="px-3 py-1.5 rounded-xl bg-pink-100 text-pink-700 text-xs font-bold hover:scale-105 transition-transform cursor-pointer">Cilegon Hujan Debu</span>
-            <span class="px-2.5 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-semibold hover:scale-105 transition-transform cursor-pointer">Pelabuhan Merak Normal</span>
-            <span class="px-2.5 py-1 rounded-xl bg-rose-100 text-rose-800 text-xs font-semibold hover:scale-105 transition-transform cursor-pointer">Mata Perih</span>
-            <span class="px-2.5 py-1 rounded-xl bg-purple-50 text-purple-700 text-xs font-semibold hover:scale-105 transition-transform cursor-pointer">PVMBG Magma</span>
-            <span class="px-2.5 py-1 rounded-xl bg-pastel-blush text-slate-800 text-xs font-bold hover:scale-105 transition-transform cursor-pointer">Wisata Anyer Sepi</span>
-          </div>
-        </div>
-
-        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Kecepatan Tren:</span>
-          <span class="font-bold text-pastel-forest">+42.6 posting/menit</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-pastel-sage/40 shadow-soft space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-pastel-forest"></i>
-            Eksplorasi Opini Publik & Data Media
-          </h3>
-          <p class="text-xs sm:text-sm text-slate-500 mt-1">
-            Data terstruktur dari crawler Apify & laporan masyarakat yang telah diklasifikasikan sentimennya.
-          </p>
-        </div>
-
-        <!-- Filter Controls -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Search Input -->
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input id="searchInput" type="text" placeholder="Cari kata kunci / kota..." class="pl-9 pr-4 py-2 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-pastel-leaf transition-all w-44 sm:w-56">
-          </div>
-
-          <!-- Sentiment Filter Dropdown -->
-          <select id="sentimentFilter" class="px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-700 focus:outline-none focus:border-pastel-leaf transition-all cursor-pointer">
-            <option value="ALL">Semua Sentimen</option>
-            <option value="Negatif">Negatif (Kekhawatiran)</option>
-            <option value="Netral">Netral (Informasi)</option>
-            <option value="Positif">Positif (Edukasi/Mitigasi)</option>
-          </select>
-
-          <!-- Export CSV Button -->
-          <button id="btnExportData" class="px-3.5 py-2 rounded-xl bg-white border border-pastel-pink hover:bg-pastel-rose text-pastel-berry text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all">
-            <i class="fa-solid fa-file-arrow-down"></i>
-            <span>Ekspor CSV</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Feed Cards Container -->
-      <div id="postsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Injected via JavaScript -->
-      </div>
-
-      <!-- Pagination / Count footer -->
-      <div class="flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-500">
-        <div>
-          Menampilkan <span id="displayedCount" class="font-bold text-slate-700">0</span> dari <span id="totalFilterCount" class="font-bold text-slate-700">0</span> postingan tersimpan
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="btnLoadMore" class="px-4 py-2 rounded-xl bg-pastel-mint hover:bg-pastel-sage text-pastel-darkgreen font-semibold transition-all shadow-sm">
-            Tampilkan Lebih Banyak
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section class="glass-panel p-6 sm:p-8 rounded-3xl border border-pastel-blush/40 shadow-soft bg-gradient-to-r from-pastel-mint/30 via-white to-pastel-rose/30">
-      <div class="max-w-4xl mx-auto space-y-5">
-        <div class="text-center space-y-2">
-          <span class="px-3 py-1 rounded-full bg-pastel-rose text-pastel-berry font-bold text-xs uppercase tracking-wider">
-            Rekomendasi Respons Publik
-          </span>
-          <h3 class="text-2xl font-black text-slate-800">
-            Aksi Mitigasi Berdasarkan Analisis Sentimen
-          </h3>
-          <p class="text-sm text-slate-600">
-            Langkah taktis yang direkomendasikan berdasarkan keluhan utama masyarakat di media sosial saat ini.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <!-- Rekomendasi 1 -->
-          <div class="p-4 rounded-2xl bg-white/90 border border-pastel-sage shadow-sm space-y-2">
-            <div class="w-10 h-10 rounded-xl bg-pastel-mint flex items-center justify-center text-pastel-forest font-bold text-base">
-              <i class="fa-solid fa-mask-face"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm">Distribusi Masker N95 / Medis</h4>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              46% keluhan berkutat pada gejala batuk dan mata perih di Cilegon & Anyer. Prioritaskan posko pembagian masker di simpul jalan utama dan sekolah.
-            </p>
-          </div>
-
-          <!-- Rekomendasi 2 -->
-          <div class="p-4 rounded-2xl bg-white/90 border border-pastel-pink shadow-sm space-y-2">
-            <div class="w-10 h-10 rounded-xl bg-pastel-rose flex items-center justify-center text-pastel-berry font-bold text-base">
-              <i class="fa-solid fa-ship"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm">Transparansi Penyeberangan Merak</h4>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              Banyak calon penumpang cemas kapal feri ditutup. ASDP & BPTD perlu merilis siaran pers periodik bahwa jarak pandang pelayaran masih aman.
-            </p>
-          </div>
-
-          <!-- Rekomendasi 3 -->
-          <div class="p-4 rounded-2xl bg-white/90 border border-pastel-sage shadow-sm space-y-2">
-            <div class="w-10 h-10 rounded-xl bg-pastel-sage flex items-center justify-center text-emerald-800 font-bold text-base">
-              <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm">Edukasi Melawan Hoaks Tsunami</h4>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              Terdapat keresahan trauma tsunami 2018. Rilis kanal verifikasi fakta bahwa letusan abu saat ini berstatus Siaga III dengan radius aman 5 km dari kawah.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
+    <aside class="dataset-note"><svg class="icon" aria-hidden="true"><use href="#icon-info"/></svg><p><strong>Tentang dashboard ini.</strong> <span id="dataNote">Dataset awal berisi 8 komentar simulasi dan tidak memiliki tautan unggahan asli.</span> Uji sentimen menggunakan perkiraan kata kunci. Komentar yang ditambahkan hanya tersimpan selama halaman terbuka; ekspor CSV untuk menyimpannya.</p></aside>
   </main>
+  <footer class="site-footer"><div class="container footer-inner"><span><strong>KrakatauPulse.</strong> · Analisis sentimen Anak Krakatau</span><a href="https://github.com/utiiiw/pemrodua" target="_blank" rel="noopener noreferrer">Lihat proyek di GitHub ↗</a></div></footer>
 
-  <footer class="mt-16 border-t border-pastel-sage/40 glass-panel py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-      <div class="flex items-center gap-2">
-        <span class="font-bold text-slate-800">KrakatauPulse Sentiment Engine</span>
-        <span>•</span>
-        <span>Data Crawler powered by Apify</span>
-      </div>
-      <div>
-        <span>Didesain dengan palet Hijau Pastel & Pink Pastel • Siaga Bencana Selat Sunda</span>
-      </div>
+  <dialog id="apifyModal" aria-labelledby="source-dialog-title">
+    <div class="dialog-content">
+      <div class="dialog-heading"><div><p class="eyebrow">Sumber dataset</p><h2 id="source-dialog-title">Tentang data Apify</h2></div><button class="button close-button" type="button" data-close-dialog aria-label="Tutup informasi data"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+      <div class="dialog-note"><p>Dashboard dibuka dengan 8 komentar contoh. Gunakan tombol di bawah untuk mengambil hingga 8 komentar dari dataset Apify yang sudah dikonfigurasi.</p><p>Tautan sumber ditampilkan jika tersedia dalam dataset. Label sentimen dari dataset digunakan jika ada; jika tidak, sentimen diperkirakan dari kata kunci.</p></div>
+      <p id="apifyFeedback" class="inline-message" role="status" aria-live="polite" hidden></p>
+      <div class="actions"><button class="button" type="button" data-close-dialog>Tutup</button><button id="btnSyncApify" class="button primary" type="button">Ambil data Apify</button></div>
     </div>
-  </footer>
-
-  <div id="apifyModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-pastel-sage relative">
-      <button id="btnCloseApifyModal" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-pastel-mint flex items-center justify-center text-pastel-darkgreen text-xl">
-          <i class="fa-solid fa-cloud-bolt"></i>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-slate-800">Konfigurasi Crawler Apify</h3>
-          <p class="text-xs text-slate-500">Sinkronisasi dataset sentimen abu vulkanik dari Apify</p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Apify API Token</label>
-          <div class="relative">
-            <input id="inputApifyToken" type="text" value="apify_api_YmNst17LVS4bGvijPKBg9lZDRw4q0P205YIs" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs text-slate-800 focus:outline-none focus:border-pastel-leaf">
-            <button id="btnCopyToken" class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 hover:bg-slate-100">
-              <i class="fa-regular fa-copy"></i>
-            </button>
-          </div>
-          <p class="text-[11px] text-slate-400 mt-1">Token aktif default telah disematkan dari query Anda.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ID Dataset / Task Runner (Opsional)</label>
-          <input id="inputDatasetId" type="text" placeholder="Contoh: dataset_anak_krakatau_v2" value="dataset_anak_krakatau_v2" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-pastel-leaf">
-          <p class="text-[11px] text-slate-400 mt-1">Jika dataset publik atau aktor Twitter/Google News aktif di akun Anda.</p>
-        </div>
-
-        <div class="p-3.5 rounded-2xl bg-pastel-mint/40 border border-pastel-sage text-xs text-slate-700 space-y-1.5">
-          <div class="flex items-center gap-1.5 font-bold text-pastel-darkgreen">
-            <i class="fa-solid fa-circle-info"></i> Mode Sinkronisasi Cerdas
-          </div>
-          <p class="text-[11px] leading-relaxed">
-            Jika endpoint langsung dibatasi oleh CORS browser pengguna, dashboard secara otomatis melakukan simulasi sinkronisasi data riil Krakatau berbasis korpus berita terkini dan laporan warga.
-          </p>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button id="btnTestApify" class="px-4 py-2.5 rounded-xl bg-white border border-pastel-leaf text-pastel-forest hover:bg-pastel-mint text-xs font-semibold transition-all">
-            Uji Koneksi
-          </button>
-          <button id="btnSyncApify" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pastel-forest to-emerald-600 text-white text-xs font-bold shadow hover:opacity-95 transition-all flex items-center gap-2">
-            <i class="fa-solid fa-arrows-rotate"></i>
-            <span>Mulai Tarik Data Baru</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="analyzeModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-pastel-blush relative">
-      <button id="btnCloseAnalyzeModal" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-pastel-rose flex items-center justify-center text-pastel-berry text-xl">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-slate-800">Uji Sentimen Real-Time</h3>
-          <p class="text-xs text-slate-500">Masukkan kalimat / cuitan warga untuk dievaluasi oleh mesin NLP</p>
-        </div>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Teks Laporan atau Cuitan Warga</label>
-          <textarea id="inputTestText" rows="3" placeholder="Contoh: Abu krakatau tebal banget di Anyer pagi ini, mata perih dan sesak nafas tolong bagi masker..." class="w-full p-3 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 focus:outline-none focus:border-pastel-berry"></textarea>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Lokasi Laporan</label>
-          <input id="inputTestLocation" type="text" placeholder="Anyer, Cilegon, Merak, atau Kalianda" value="Anyer, Banten" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-pastel-leaf">
-        </div>
-
-        <!-- Result Box (Hidden by default) -->
-        <div id="analysisResultBox" class="hidden p-4 rounded-2xl border transition-all space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-600">Hasil Klasifikasi:</span>
-            <span id="resBadge" class="px-2.5 py-0.5 rounded-full text-xs font-black"></span>
-          </div>
-          <div class="flex items-center justify-between text-xs text-slate-600">
-            <span>Tingkat Kepastian (Confidence):</span>
-            <span id="resConfidence" class="font-bold"></span>
-          </div>
-          <div class="text-xs text-slate-500">
-            <span class="font-semibold text-slate-700">Kata Kunci Emosi:</span>
-            <span id="resKeywords" class="italic"></span>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button id="btnProcessAnalysis" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pastel-berry to-pastel-deepblush text-white text-xs font-bold shadow hover:opacity-95 transition-all flex items-center gap-2">
-            <i class="fa-solid fa-magnifying-glass-chart"></i>
-            <span>Analisis Teks</span>
-          </button>
-          <button id="btnAppendToDataset" class="hidden px-4 py-2.5 rounded-xl bg-pastel-mint text-pastel-darkgreen text-xs font-bold hover:bg-pastel-sage transition-all">
-            + Tambahkan ke Dashboard
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  </dialog>
+  <dialog id="analyzeModal" aria-labelledby="analyze-dialog-title">
+    <form id="analysisForm" class="dialog-content">
+      <div class="dialog-heading"><div><p class="eyebrow">Eksplorasi opini</p><h2 id="analyze-dialog-title">Uji sentimen komentar</h2><p>Perkiraan sederhana berdasarkan kata kunci.</p></div><button class="button close-button" type="button" data-close-dialog aria-label="Tutup uji sentimen"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+      <div class="field"><label for="inputTestText">Teks komentar</label><textarea id="inputTestText" rows="4" maxlength="2000" required placeholder="Tulis komentar yang ingin Anda analisis…"></textarea></div>
+      <div class="field"><label for="inputTestLocation">Lokasi <span class="muted">(opsional)</span></label><input id="inputTestLocation" type="text" maxlength="100" placeholder="Contoh: Anyer, Banten"></div>
+      <div id="analysisResultBox" class="result-box" role="status" aria-live="polite" hidden><div class="result-top"><strong>Hasil perkiraan</strong><span id="resBadge" class="sentiment-badge"></span></div><p id="resScore"></p><p>Kata kunci: <span id="resKeywords"></span></p></div>
+      <div class="actions"><button id="btnProcessAnalysis" class="button primary" type="submit">Analisis komentar</button><button id="btnAppendToDataset" class="button soft" type="button" hidden>Tambahkan ke dataset</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="container dataset-note">Aktifkan JavaScript untuk menampilkan dan menyaring komentar.</p></noscript>
 
   <script>
     const initialPosts = [
-      {
-        id: "post-101",
-        author: "@SitiRahma_Anyer",
-        platform: "Twitter",
-        date: "2026-10-08 07:15",
-        text: "Pagi ini teras rumah penuh abu halus hitam dari Anak Krakatau. Udara agak bau belerang, anak-anak terpaksa pakai masker ganda ke sekolah.",
-        location: "Anyer, Banten",
-        sentiment: "Negatif",
-        category: "Kesehatan & ISPA",
-        score: -0.78,
-        likes: 142
-      },
-      {
-        id: "post-102",
-        author: "@BPBD_Banten_Official",
-        platform: "Berita",
-        date: "2026-10-08 08:30",
-        text: "Tim BPBD membagikan 15.000 masker gratis di wilayah Cilegon barat dan Anyer pasca erupsi abu vulkanik tadi malam. Status tetap Siaga Level III.",
-        location: "Cilegon, Banten",
-        sentiment: "Positif",
-        category: "Kesiapsiagaan & Mitigasi",
-        score: 0.85,
-        likes: 420
-      },
-      {
-        id: "post-103",
-        author: "@Magma_Indonesia",
-        platform: "Berita",
-        date: "2026-10-08 09:00",
-        text: "Tinggi kolom letusan G. Anak Krakatau teramati ± 1.200 m di atas puncak. Kolom abu teramati berwarna kelabu hingga hitam dengan intensitas tebal condong ke arah timur laut.",
-        location: "Selat Sunda",
-        sentiment: "Netral",
-        category: "Informasi Vulkanologi",
-        score: 0.05,
-        likes: 890
-      },
-      {
-        id: "post-104",
-        author: "@BudiSantoso_Cilegon",
-        platform: "Twitter",
-        date: "2026-10-08 10:20",
-        text: "Mobil yang diparkir di luar langsung kusam kena abu vulkanik. Kerongkongan mulai gatal-gatal. Mohon dinas kesehatan siagakan puskesmas 24 jam!",
-        location: "Cilegon Kota",
-        sentiment: "Negatif",
-        category: "Kesehatan & ISPA",
-        score: -0.65,
-        likes: 88
-      },
-      {
-        id: "post-105",
-        author: "@ASDP_MerakInfo",
-        platform: "Instagram",
-        date: "2026-10-08 11:45",
-        text: "Pelayaran kapal feri rute Merak - Bakauheni beroperasi normal. Jarak pandang laut berkisar 6 km dan tidak terganggu signifikan oleh sebaran abu.",
-        location: "Pelabuhan Merak",
-        sentiment: "Positif",
-        category: "Transportasi Laut",
-        score: 0.72,
-        likes: 312
-      },
-      {
-        id: "post-106",
-        author: "@WargaKalianda_Lpg",
-        platform: "Twitter",
-        date: "2026-10-08 13:10",
-        text: "Angin laut agak kencang, sebagian abu tipis sampai ke pesisir Kalianda Lampung. Semoga tidak terjadi erupsi susulan yang lebih besar.",
-        location: "Kalianda, Lampung",
-        sentiment: "Netral",
-        category: "Kekhawatiran Lingkungan",
-        score: -0.15,
-        likes: 54
-      },
-      {
-        id: "post-107",
-        author: "@HotelAnyer_Pesona",
-        platform: "Instagram",
-        date: "2026-10-08 14:00",
-        text: "Banyak calon tamu membatalkan reservasi akhir pekan karena cemas abu vulkanik, padahal di pantai kami kondisi masih sangat terkendali dan staf siap masker.",
-        location: "Carita, Banten",
-        sentiment: "Negatif",
-        category: "Dampak Pariwisata",
-        score: -0.58,
-        likes: 95
-      },
-      {
-        id: "post-108",
-        author: "@RelawanMerakPeduli",
-        platform: "Twitter",
-        date: "2026-10-08 15:30",
-        text: "Alhamdulillah donasi kacamata pelindung dan tetes mata untuk nelayan di Selat Sunda sudah mulai disalurkan. Terima kasih semua orang baik!",
-        location: "Merak, Banten",
-        sentiment: "Positif",
-        category: "Kesiapsiagaan & Mitigasi",
-        score: 0.91,
-        likes: 247
-      },
-      {
-        id: "post-109",
-        author: "@BMKG_Maritim",
-        platform: "Berita",
-        date: "2026-10-08 16:40",
-        text: "Peringatan dini cuaca Selat Sunda: Potensi hujan ringan hingga sedang berpotensi melarutkan partikel abu di udara sore hari ini.",
-        location: "Selat Sunda",
-        sentiment: "Netral",
-        category: "Informasi Cuaca",
-        score: 0.10,
-        likes: 190
-      }
-    ];
-
+      { id: 'post-101', author: '@SitiRahma_Anyer', platform: 'Twitter', date: '2026-10-08 07:15', text: 'Pagi ini teras rumah penuh abu halus hitam dari Anak Krakatau. Udara agak bau belerang, anak-anak terpaksa pakai masker ganda ke sekolah.', location: 'Anyer, Banten', sentiment: 'Negatif', category: 'Kesehatan & ISPA' },
+      { id: 'post-102', author: '@BPBD_Banten_Official', platform: 'Berita', date: '2026-10-08 08:30', text: 'Tim BPBD membagikan 15.000 masker gratis di wilayah Cilegon barat dan Anyer pasca erupsi abu vulkanik tadi malam. Status tetap Siaga Level III.', location: 'Cilegon, Banten', sentiment: 'Positif', category: 'Kesiapsiagaan & mitigasi' },
+      { id: 'post-103', author: '@Magma_Indonesia', platform: 'Berita', date: '2026-10-08 09:00', text: 'Tinggi kolom letusan G. Anak Krakatau teramati ± 1.200 m di atas puncak. Kolom abu teramati berwarna kelabu hingga hitam dengan intensitas tebal condong ke arah timur laut.', location: 'Selat Sunda', sentiment: 'Netral', category: 'Informasi vulkanologi' },
+      { id: 'post-104', author: '@BudiSantoso_Cilegon', platform: 'Twitter', date: '2026-10-08 10:20', text: 'Mobil yang diparkir di luar langsung kusam kena abu vulkanik. Kerongkongan mulai gatal-gatal. Mohon dinas kesehatan siagakan puskesmas 24 jam!', location: 'Cilegon Kota', sentiment: 'Negatif', category: 'Kesehatan & ISPA' },
+      { id: 'post-105', author: '@ASDP_MerakInfo', platform: 'Instagram', date: '2026-10-08 11:45', text: 'Pelayaran kapal feri rute Merak - Bakauheni beroperasi normal. Jarak pandang laut berkisar 6 km dan tidak terganggu signifikan oleh sebaran abu.', location: 'Pelabuhan Merak', sentiment: 'Positif', category: 'Transportasi laut' },
+      { id: 'post-106', author: '@WargaKalianda_Lpg', platform: 'Twitter', date: '2026-10-08 13:10', text: 'Angin laut agak kencang, sebagian abu tipis sampai ke pesisir Kalianda Lampung. Semoga tidak terjadi erupsi susulan yang lebih besar.', location: 'Kalianda, Lampung', sentiment: 'Netral', category: 'Lingkungan' },
+      { id: 'post-107', author: '@HotelAnyer_Pesona', platform: 'Instagram', date: '2026-10-08 14:00', text: 'Banyak calon tamu membatalkan reservasi akhir pekan karena cemas abu vulkanik, padahal di pantai kami kondisi masih sangat terkendali dan staf siap masker.', location: 'Carita, Banten', sentiment: 'Negatif', category: 'Pariwisata' },
+      { id: 'post-108', author: '@RelawanMerakPeduli', platform: 'Twitter', date: '2026-10-08 15:30', text: 'Alhamdulillah donasi kacamata pelindung dan tetes mata untuk nelayan di Selat Sunda sudah mulai disalurkan. Terima kasih semua orang baik!', location: 'Merak, Banten', sentiment: 'Positif', category: 'Kesiapsiagaan & mitigasi' }
+    ].map(post => ({ ...post, sourceUrl: '', kind: 'Contoh' }));
+    const sentimentClasses = { Positif: 'positive', Netral: 'neutral', Negatif: 'negative' };
     let currentPosts = [...initialPosts];
-    let displayedLimit = 6;
-    let pieChartInstance = null;
-    let timelineChartInstance = null;
-    let issuesChartInstance = null;
-    let radarChartInstance = null;
+    let displayedLimit = 8;
+    let pieChartInstance;
+    let issuesChartInstance;
+    let lastAnalysisResult;
+    let toastTimer;
+    const byId = id => document.getElementById(id);
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const percentage = (count, total) => (total ? count / total * 100 : 0).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+    const icon = name => '<svg class="icon" aria-hidden="true"><use href="#icon-' + name + '"/></svg>';
+    const safeSourceUrl = value => {
+      try {
+        const url = new URL(value);
+        return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : '';
+      } catch { return ''; }
+    };
 
-    function showToast(title, message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `p-4 rounded-2xl glass-panel shadow-lg border pointer-events-auto flex items-start gap-3 transition-all duration-300 transform translate-x-5 opacity-0 ${
-        type === 'success' ? 'border-pastel-leaf bg-emerald-50/95 text-emerald-900' :
-        type === 'error' ? 'border-pastel-berry bg-rose-50/95 text-rose-900' :
-        'border-pastel-sage bg-white/95 text-slate-800'
-      }`;
-
-      const icon = type === 'success' ? 'fa-circle-check text-emerald-600' :
-                   type === 'error' ? 'fa-triangle-exclamation text-rose-600' :
-                   'fa-circle-info text-pastel-forest';
-
-      toast.innerHTML = `
-        <i class="fa-solid ${icon} mt-0.5 text-base"></i>
-        <div class="flex-1">
-          <p class="font-bold text-xs">${title}</p>
-          <p class="text-[11px] opacity-90 mt-0.5">${message}</p>
-        </div>
-      `;
-
-      container.appendChild(toast);
-      
-      // Animate in
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-x-5', 'opacity-0');
-      });
-
-      // Auto dismiss
-      setTimeout(() => {
-        toast.classList.add('translate-x-5', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 4000);
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      byId('toast').textContent = message;
+      byId('toast').hidden = false;
+      toastTimer = setTimeout(() => { byId('toast').hidden = true; }, 4000);
     }
 
     function recalculateMetrics() {
       const total = currentPosts.length;
-      if (total === 0) return;
-
-      const posCount = currentPosts.filter(p => p.sentiment === 'Positif').length;
-      const negCount = currentPosts.filter(p => p.sentiment === 'Negatif').length;
-      const netCount = currentPosts.filter(p => p.sentiment === 'Netral').length;
-
-      const posPct = ((posCount / total) * 100).toFixed(1);
-      const negPct = ((negCount / total) * 100).toFixed(1);
-      const netPct = ((netCount / total) * 100).toFixed(1);
-
-      document.getElementById('statTotalPosts').textContent = total.toLocaleString('id-ID');
-      document.getElementById('headerTotalPostCount').textContent = `${total.toLocaleString('id-ID')} Data`;
-      document.getElementById('statNegatifPercent').textContent = `${negPct}%`;
-      document.getElementById('statNetralPercent').textContent = `${netPct}%`;
-      document.getElementById('statPositifPercent').textContent = `${posPct}%`;
-
-      document.getElementById('pieValPositif').textContent = `${posPct}%`;
-      document.getElementById('pieValNetral').textContent = `${netPct}%`;
-      document.getElementById('pieValNegatif').textContent = `${negPct}%`;
-
-      updatePieChart(posCount, netCount, negCount);
+      const counts = ['Positif', 'Netral', 'Negatif'].map(label => currentPosts.filter(post => post.sentiment === label).length);
+      byId('statTotalPosts').textContent = total;
+      byId('headerTotalPostCount').textContent = total + ' data';
+      byId('chartTotal').textContent = total;
+      byId('datasetCount').textContent = total;
+      ['Positif', 'Netral', 'Negatif'].forEach((label, index) => {
+        byId('stat' + label + 'Percent').textContent = percentage(counts[index], total);
+        byId('pieVal' + label).textContent = percentage(counts[index], total);
+      });
+      ['positiveCount', 'neutralCount', 'negativeCount'].forEach((id, index) => { byId(id).textContent = counts[index] + ' data'; });
+      const categories = new Map();
+      currentPosts.forEach(post => categories.set(post.category, (categories.get(post.category) || 0) + 1));
+      const topics = [...categories].sort((a, b) => b[1] - a[1]);
+      const description = topics.map(([label, count]) => label + ': ' + count + ' komentar').join('; ');
+      byId('issuesDescription').textContent = description;
+      if (pieChartInstance) {
+        pieChartInstance.data.datasets[0].data = counts;
+        pieChartInstance.update('none');
+        issuesChartInstance.data.labels = topics.map(([label]) => label);
+        issuesChartInstance.data.datasets[0].data = topics.map(([, count]) => count);
+        issuesChartInstance.update('none');
+      } else {
+        byId('chartFallback').hidden = false;
+        byId('chartFallback').textContent = description;
+      }
     }
 
     function initializeCharts() {
-      // 1. Donut Chart (Sentiment Pie)
-      const pieCtx = document.getElementById('sentimentPieChart').getContext('2d');
-      pieChartInstance = new Chart(pieCtx, {
+      if (typeof Chart === 'undefined') return;
+      const theme = getComputedStyle(document.documentElement);
+      const color = name => theme.getPropertyValue(name).trim();
+      Chart.defaults.font.family = '"Plus Jakarta Sans", sans-serif';
+      Chart.defaults.color = color('--muted');
+      const options = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } } };
+      pieChartInstance = new Chart(byId('sentimentPieChart'), {
         type: 'doughnut',
-        data: {
-          labels: ['Positif (Mitigasi/Apresiasi)', 'Netral (Data/Kondisi)', 'Negatif (Keluhan/ISPA)'],
-          datasets: [{
-            data: [20, 33, 47],
-            backgroundColor: [
-              '#74c69d', // pastel mint/leaf
-              '#cbd5e1', // soft neutral slate
-              '#fb6f92'  // pastel berry pink
-            ],
-            borderWidth: 3,
-            borderColor: '#ffffff',
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          cutout: '72%'
-        }
+        data: { labels: ['Positif', 'Netral', 'Negatif'], datasets: [{ data: [], backgroundColor: [color('--green-chart'), color('--neutral-chart'), color('--pink-chart')], borderColor: color('--surface'), borderWidth: 5, hoverOffset: 4 }] },
+        options: { ...options, cutout: '77%' }
       });
-
-      // 2. Timeline Line/Area Chart (7 Hari Erupsi)
-      const timeCtx = document.getElementById('timelineChart').getContext('2d');
-      timelineChartInstance = new Chart(timeCtx, {
-        type: 'line',
-        data: {
-          labels: ['02 Okt', '03 Okt', '04 Okt', '05 Okt', '06 Okt', '07 Okt', '08 Okt'],
-          datasets: [
-            {
-              label: 'Kekhawatiran / Negatif',
-              data: [85, 110, 240, 420, 680, 590, 850],
-              borderColor: '#fb6f92',
-              backgroundColor: 'rgba(251, 111, 146, 0.15)',
-              tension: 0.4,
-              fill: true,
-              pointBackgroundColor: '#fb6f92',
-              pointRadius: 4
-            },
-            {
-              label: 'Informasi Vulkanologi / Netral',
-              data: [120, 140, 290, 350, 410, 430, 520],
-              borderColor: '#94a3b8',
-              backgroundColor: 'rgba(148, 163, 184, 0.1)',
-              tension: 0.4,
-              fill: true,
-              pointBackgroundColor: '#94a3b8',
-              pointRadius: 4
-            },
-            {
-              label: 'Edukasi & Donasi / Positif',
-              data: [45, 60, 110, 190, 310, 340, 410],
-              borderColor: '#40916c',
-              backgroundColor: 'rgba(64, 145, 108, 0.15)',
-              tension: 0.4,
-              fill: true,
-              pointBackgroundColor: '#40916c',
-              pointRadius: 4
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: 'rgba(30, 41, 59, 0.9)',
-              padding: 10,
-              cornerRadius: 10
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 11 } }
-            },
-            y: {
-              grid: { color: 'rgba(226, 232, 240, 0.6)' },
-              ticks: { font: { size: 11 } }
-            }
-          }
-        }
-      });
-
-      // 3. Issues Bar Chart
-      const issuesCtx = document.getElementById('issuesBarChart').getContext('2d');
-      issuesChartInstance = new Chart(issuesCtx, {
+      issuesChartInstance = new Chart(byId('issuesBarChart'), {
         type: 'bar',
-        data: {
-          labels: ['Kesehatan (ISPA/Mata)', 'Kebersihan Rumah/Mobil', 'Penyeberangan Merak', 'Kerugian Wisata Anyer', 'Kesiagaan Bencana'],
-          datasets: [{
-            label: 'Persentase Bahasan (%)',
-            data: [42, 26, 14, 11, 7],
-            backgroundColor: [
-              '#ff8fab', // pastel deepblush
-              '#ffb3c6', // pastel pink
-              '#b7e4c7', // pastel sage
-              '#ffd1dc', // blush
-              '#74c69d'  // pastel leaf
-            ],
-            borderRadius: 8,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis: 'y',
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(226, 232, 240, 0.6)' },
-              ticks: { callback: v => v + '%' }
-            },
-            y: {
-              grid: { display: false }
-            }
-          }
-        }
+        data: { labels: [], datasets: [{ label: 'Komentar', data: [], backgroundColor: color('--green-chart'), borderRadius: 5, maxBarThickness: 20 }] },
+        options: { ...options, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 }, grid: { color: color('--line') }, border: { display: false } }, y: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } } } }
       });
-
-      // 4. Emotion Radar Chart
-      const radarCtx = document.getElementById('emotionRadarChart').getContext('2d');
-      radarChartInstance = new Chart(radarCtx, {
-        type: 'radar',
-        data: {
-          labels: ['Cemas / Takut', 'Waspada', 'Keluhan Fisik', 'Solidaritas Warga', 'Optimisme'],
-          datasets: [{
-            label: 'Intensitas Emosi',
-            data: [78, 85, 70, 62, 55],
-            backgroundColor: 'rgba(255, 179, 198, 0.35)',
-            borderColor: '#fb6f92',
-            pointBackgroundColor: '#40916c',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: '#fb6f92'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            r: {
-              angleLines: { color: 'rgba(203, 213, 225, 0.4)' },
-              grid: { color: 'rgba(203, 213, 225, 0.4)' },
-              suggestedMin: 20,
-              suggestedMax: 100,
-              ticks: { display: false }
-            }
-          }
-        }
-      });
-    }
-
-    function updatePieChart(pos, net, neg) {
-      if (!pieChartInstance) return;
-      pieChartInstance.data.datasets[0].data = [pos, net, neg];
-      pieChartInstance.update();
     }
 
     function renderPosts() {
-      const container = document.getElementById('postsContainer');
-      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
-      const filterSentiment = document.getElementById('sentimentFilter').value;
-
-      const filtered = currentPosts.filter(item => {
-        const matchText = item.text.toLowerCase().includes(searchVal) || 
-                          item.location.toLowerCase().includes(searchVal) ||
-                          item.author.toLowerCase().includes(searchVal) ||
-                          item.category.toLowerCase().includes(searchVal);
-        const matchSent = (filterSentiment === 'ALL') || (item.sentiment === filterSentiment);
-        return matchText && matchSent;
-      });
-
-      document.getElementById('totalFilterCount').textContent = filtered.length;
-      const slicePosts = filtered.slice(0, displayedLimit);
-      document.getElementById('displayedCount').textContent = slicePosts.length;
-
-      // Handle empty state
-      if (slicePosts.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full py-12 text-center text-slate-400">
-            <i class="fa-regular fa-folder-open text-4xl mb-3 text-pastel-pink"></i>
-            <p class="font-semibold text-sm">Tidak ditemukan opini yang sesuai kata kunci "${searchVal}".</p>
-            <p class="text-xs mt-1">Coba gunakan kata kunci lain seperti "masker", "Anyer", atau "belerang".</p>
-          </div>
-        `;
+      const search = byId('searchInput').value.toLowerCase().trim();
+      const sentiment = byId('sentimentFilter').value;
+      const filtered = currentPosts.filter(post =>
+        [post.text, post.location, post.author, post.category].some(value => value.toLowerCase().includes(search)) &&
+        (sentiment === 'ALL' || sentiment === post.sentiment)
+      );
+      const visible = filtered.slice(0, displayedLimit);
+      byId('displayedCount').textContent = visible.length;
+      byId('totalFilterCount').textContent = filtered.length;
+      byId('btnLoadMore').hidden = displayedLimit >= filtered.length;
+      if (!visible.length) {
+        byId('postsContainer').innerHTML = '<div class="empty-state">' + icon('search') + '<h3>Belum ada komentar yang sesuai</h3><p>Ganti kata kunci atau bersihkan filter untuk melihat seluruh data.</p></div>';
         return;
       }
-
-      container.innerHTML = slicePosts.map(post => {
-        let badgeColor = 'bg-pastel-mint text-pastel-darkgreen border-pastel-sage';
-        let sentimentIcon = 'fa-face-smile text-pastel-forest';
-        if (post.sentiment === 'Negatif') {
-          badgeColor = 'bg-pastel-rose text-pastel-berry border-pastel-blush';
-          sentimentIcon = 'fa-face-frown text-pastel-berry';
-        } else if (post.sentiment === 'Netral') {
-          badgeColor = 'bg-slate-100 text-slate-700 border-slate-200';
-          sentimentIcon = 'fa-face-meh text-slate-500';
-        }
-
-        return `
-          <div class="bg-white/95 rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-pastel-leaf/60 transition-all flex flex-col justify-between group">
-            <div class="space-y-3">
-              <!-- Top Row: Author & Badge -->
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-full bg-pastel-mint/60 flex items-center justify-center font-bold text-xs text-pastel-darkgreen">
-                    ${post.author.substring(1, 3).toUpperCase()}
-                  </div>
-                  <div>
-                    <h5 class="text-xs font-bold text-slate-800 leading-tight">${post.author}</h5>
-                    <span class="text-[10px] text-slate-400">${post.platform} • ${post.date}</span>
-                  </div>
-                </div>
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${badgeColor} flex items-center gap-1">
-                  <i class="fa-solid ${sentimentIcon}"></i>
-                  ${post.sentiment}
-                </span>
-              </div>
-
-              <!-- Post Body -->
-              <p class="text-xs text-slate-700 leading-relaxed">
-                ${post.text}
-              </p>
-            </div>
-
-            <!-- Footer Details -->
-            <div class="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-              <span class="flex items-center gap-1 font-medium text-slate-600">
-                <i class="fa-solid fa-location-dot text-pastel-berry"></i>
-                ${post.location}
-              </span>
-              <span class="flex items-center gap-1.5 text-slate-400">
-                <i class="fa-regular fa-heart text-pastel-berry"></i> ${post.likes}
-              </span>
-            </div>
-          </div>
-        `;
+      byId('postsContainer').innerHTML = visible.map(post => {
+        const source = safeSourceUrl(post.sourceUrl);
+        const initials = post.author.replace(/^@/, '').slice(0, 2).toUpperCase();
+        const sourceLink = source ? '<a href="' + escapeHtml(source) + '" target="_blank" rel="noopener noreferrer">' + icon('link') + 'Lihat sumber ↗</a>' : '<span>Tautan sumber belum tersedia</span>';
+        const date = new Date(post.date);
+        const displayDate = Number.isNaN(date.getTime()) ? post.date : date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const title = post.title ? '<p class="post-title">' + escapeHtml(post.title) + '</p>' : '';
+        const longText = post.text.length > 420;
+        const text = '<p class="post-text">' + escapeHtml(post.text.slice(0, 420)) + (longText ? '…' : '') + '</p>' + (longText ? '<details class="post-expand"><summary>Baca selengkapnya</summary><p>' + escapeHtml(post.text.slice(420)) + '</p></details>' : '');
+        return '<article class="post-card"><div class="post-top"><span class="avatar" aria-hidden="true">' + escapeHtml(initials) + '</span><div class="author-info"><h3>' + escapeHtml(post.author) + '</h3><p>' + escapeHtml(post.platform) + ' · ' + escapeHtml(displayDate) + '</p></div><span class="sentiment-badge ' + sentimentClasses[post.sentiment] + '">' + escapeHtml(post.sentiment) + '</span></div>' + title + text + '<div class="post-bottom"><span>' + icon('pin') + escapeHtml(post.location || 'Lokasi tidak tersedia') + '</span>' + sourceLink + '</div><span class="source-note">' + escapeHtml(post.kind) + ' · ' + escapeHtml(post.category) + '</span></article>';
       }).join('');
-
-      // Toggle load more visibility
-      const btnLoadMore = document.getElementById('btnLoadMore');
-      if (displayedLimit >= filtered.length) {
-        btnLoadMore.classList.add('hidden');
-      } else {
-        btnLoadMore.classList.remove('hidden');
-      }
     }
 
     function evaluateLocalSentiment(text) {
+      // shortcut: kata kunci tidak memahami konteks atau negasi, gunakan model bahasa jika dibutuhkan.
       const lower = text.toLowerCase();
-      
-      const negativeWords = [
-        'sesak', 'ispa', 'batuk', 'perih', 'bau', 'belerang', 'kotor', 'rusak', 'batal', 
-        'sepi', 'parah', 'cemas', 'takut', 'panik', 'abu tebal', 'debu', 'gelap', 'terganggu', 
-        'bahaya', 'trauma', 'mengungsi', 'terjebak'
-      ];
-      
-      const positiveWords = [
-        'bantuan', 'alhamdulillah', 'gratis', 'masker', 'sigap', 'aman', 'terkendali', 
-        'lancar', 'normal', 'apresiasi', 'terima kasih', 'berbagi', 'peduli', 'donasi', 
-        'sehat', 'semangat', 'doa'
-      ];
+      const negative = ['sesak', 'ispa', 'batuk', 'perih', 'bau', 'belerang', 'kotor', 'rusak', 'batal', 'sepi', 'parah', 'cemas', 'takut', 'panik', 'abu tebal', 'debu', 'gelap', 'terganggu', 'bahaya', 'trauma', 'mengungsi', 'terjebak'].filter(word => lower.includes(word));
+      const positive = ['bantuan', 'alhamdulillah', 'gratis', 'masker', 'sigap', 'aman', 'terkendali', 'lancar', 'normal', 'apresiasi', 'terima kasih', 'berbagi', 'peduli', 'donasi', 'sehat', 'semangat', 'doa'].filter(word => lower.includes(word));
+      return { sentiment: negative.length > positive.length ? 'Negatif' : positive.length > negative.length ? 'Positif' : 'Netral', negative: negative.length, positive: positive.length, keywords: [...negative, ...positive] };
+    }
 
-      let negScore = 0;
-      let posScore = 0;
-      let matchedTerms = [];
+    function csvCell(value) {
+      let text = String(value ?? '');
+      if (/^\s*[=+\-@]|^[\t\r\n]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
 
-      negativeWords.forEach(w => {
-        if (lower.includes(w)) {
-          negScore += 1;
-          matchedTerms.push(w);
-        }
-      });
+    function exportCsv() {
+      const rows = [['ID', 'Penulis', 'Platform', 'Tanggal', 'Lokasi', 'Sentimen', 'Kategori', 'Komentar', 'Tautan sumber', 'Jenis data']];
+      currentPosts.forEach(post => rows.push([post.id, post.author, post.platform, post.date, post.location, post.sentiment, post.category, post.text, safeSourceUrl(post.sourceUrl), post.kind]));
+      const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+      const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'sentimen_anak_krakatau_' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(currentPosts.length + ' komentar berhasil diekspor ke CSV.');
+    }
 
-      positiveWords.forEach(w => {
-        if (lower.includes(w)) {
-          posScore += 1;
-          matchedTerms.push(w);
-        }
-      });
-
-      if (negScore > posScore) {
-        return {
-          sentiment: 'Negatif',
-          confidence: Math.min(95, 65 + (negScore * 10)) + '%',
-          keywords: matchedTerms.join(', ') || 'Kekhawatiran abu / kesehatan'
-        };
-      } else if (posScore > negScore) {
-        return {
-          sentiment: 'Positif',
-          confidence: Math.min(95, 65 + (posScore * 10)) + '%',
-          keywords: matchedTerms.join(', ') || 'Dukungan mitigasi / ketenangan'
-        };
-      } else {
-        return {
-          sentiment: 'Netral',
-          confidence: '78%',
-          keywords: matchedTerms.join(', ') || 'Informasi status / pelaporan obyektif'
-        };
+    async function syncApify() {
+      const button = byId('btnSyncApify');
+      const feedback = byId('apifyFeedback');
+      button.disabled = true;
+      button.textContent = 'Mengambil data…';
+      feedback.hidden = true;
+      try {
+        if (location.protocol === 'file:') throw new Error('Koneksi Apify tersedia saat dashboard dijalankan melalui server PHP.');
+        const response = await fetch('api.php', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(20000) });
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) throw new Error('Koneksi Apify membutuhkan server PHP yang aktif.');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Data Apify belum dapat diambil.');
+        if (!Array.isArray(data.posts) || !data.posts.length) throw new Error('Dataset belum memiliki komentar yang bisa ditampilkan.');
+        const posts = data.posts.slice(0, 8).filter(post => post && typeof post.text === 'string' && post.text.trim()).map(post => ({
+          id: String(post.id || ''), author: typeof post.author === 'string' ? post.author : 'Pengguna media sosial',
+          platform: typeof post.platform === 'string' ? post.platform : 'Media sosial', date: typeof post.date === 'string' ? post.date : 'Tanggal tidak tersedia',
+          text: post.text, location: typeof post.location === 'string' ? post.location : '',
+          category: typeof post.category === 'string' ? post.category : 'Opini masyarakat',
+          sentiment: Object.hasOwn(sentimentClasses, post.sentiment) ? post.sentiment : evaluateLocalSentiment(post.text).sentiment,
+          sourceUrl: safeSourceUrl(post.sourceUrl), title: typeof post.title === 'string' ? post.title : '',
+          recordType: post.recordType === 'Unggahan video' ? 'Unggahan video' : 'Komentar',
+          kind: post.recordType === 'Unggahan video' ? 'Apify · Unggahan video' : 'Apify · Komentar'
+        }));
+        if (!posts.length) throw new Error('Format komentar dalam dataset belum didukung.');
+        if (currentPosts.some(post => post.kind === 'Uji pengguna') && !confirm('Mengambil dataset akan mengganti komentar uji yang belum diekspor. Lanjutkan?')) return;
+        currentPosts = posts;
+        displayedLimit = 8;
+        byId('searchInput').value = '';
+        byId('sentimentFilter').value = 'ALL';
+        byId('datasetStatus').innerHTML = '<span class="status-dot"></span>Data Apify';
+        const hasVideos = posts.some(post => post.recordType === 'Unggahan video');
+        byId('datasetTitle').textContent = posts.length + ' data dari Apify';
+        byId('datasetDescription').textContent = hasVideos ? 'Dataset mencakup unggahan dan deskripsi video YouTube, bukan komentar penonton.' : 'Komentar diambil dari dataset yang dikonfigurasi. Tautan sumber tersedia jika disertakan dalam dataset.';
+        byId('summarySource').textContent = 'Dataset Apify';
+        byId('dataNote').textContent = hasVideos ? 'Dataset Apify ini mencakup deskripsi unggahan video, bukan komentar penonton. Jenis data ditandai pada setiap kartu.' : 'Dataset Apify berisi ' + posts.length + ' komentar. Tautan yang tidak tersedia ditandai pada setiap komentar.';
+        recalculateMetrics();
+        renderPosts();
+        byId('apifyModal').close();
+        showToast(posts.length + ' data dari Apify berhasil dimuat.');
+      } catch (error) {
+        feedback.textContent = error.name === 'TimeoutError' ? 'Pengambilan data terlalu lama. Silakan coba lagi.' : error.message || 'Koneksi gagal. Silakan coba lagi.';
+        feedback.hidden = false;
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Ambil data Apify';
       }
     }
 
@@ -1163,199 +574,48 @@
       initializeCharts();
       recalculateMetrics();
       renderPosts();
-
-      // Search & Filter listeners
-      document.getElementById('searchInput').addEventListener('input', () => {
-        displayedLimit = 6;
-        renderPosts();
+      byId('searchInput').addEventListener('input', () => { displayedLimit = 8; renderPosts(); });
+      byId('sentimentFilter').addEventListener('change', () => { displayedLimit = 8; renderPosts(); });
+      byId('btnResetFilters').addEventListener('click', () => { byId('searchInput').value = ''; byId('sentimentFilter').value = 'ALL'; displayedLimit = 8; renderPosts(); });
+      byId('btnLoadMore').addEventListener('click', () => { displayedLimit += 8; renderPosts(); });
+      byId('btnExportData').addEventListener('click', exportCsv);
+      byId('btnSyncApify').addEventListener('click', syncApify);
+      byId('btnOpenApifyModal').addEventListener('click', () => byId('apifyModal').showModal());
+      byId('btnOpenAnalyzeModal').addEventListener('click', () => byId('analyzeModal').showModal());
+      document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+      document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); }));
+      byId('inputTestText').addEventListener('input', () => {
+        byId('inputTestText').setCustomValidity('');
+        lastAnalysisResult = null;
+        byId('analysisResultBox').hidden = true;
+        byId('btnAppendToDataset').hidden = true;
       });
-
-      document.getElementById('sentimentFilter').addEventListener('change', () => {
-        displayedLimit = 6;
-        renderPosts();
+      byId('analysisForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const text = byId('inputTestText').value.trim();
+        if (!text) { byId('inputTestText').setCustomValidity('Tulis komentar terlebih dahulu.'); byId('inputTestText').reportValidity(); return; }
+        lastAnalysisResult = { ...evaluateLocalSentiment(text), text };
+        byId('resBadge').textContent = lastAnalysisResult.sentiment;
+        byId('resBadge').className = 'sentiment-badge ' + sentimentClasses[lastAnalysisResult.sentiment];
+        byId('resScore').textContent = lastAnalysisResult.positive + ' kata positif · ' + lastAnalysisResult.negative + ' kata negatif';
+        byId('resKeywords').textContent = lastAnalysisResult.keywords.join(', ') || 'Tidak ditemukan';
+        byId('analysisResultBox').hidden = false;
+        byId('btnAppendToDataset').hidden = false;
       });
-
-      // Load More
-      document.getElementById('btnLoadMore').addEventListener('click', () => {
-        displayedLimit += 6;
-        renderPosts();
-      });
-
-      // Apify Modal toggle
-      const apifyModal = document.getElementById('apifyModal');
-      document.getElementById('btnOpenApifyModal').addEventListener('click', () => {
-        apifyModal.classList.remove('hidden');
-      });
-      document.getElementById('btnCloseApifyModal').addEventListener('click', () => {
-        apifyModal.classList.add('hidden');
-      });
-
-      // Copy Apify Token
-      document.getElementById('btnCopyToken').addEventListener('click', () => {
-        const tokenInput = document.getElementById('inputApifyToken');
-        tokenInput.select();
-        document.execCommand('copy');
-        showToast('Berhasil Disalin', 'Token Apify berhasil disalin ke clipboard Anda!', 'success');
-      });
-
-      // Test Apify Connection
-      document.getElementById('btnTestApify').addEventListener('click', () => {
-        const token = document.getElementById('inputApifyToken').value.trim();
-        if (!token) {
-          showToast('Token Kosong', 'Harap masukkan token API Apify Anda.', 'error');
-          return;
-        }
-
-        showToast('Menguji Token...', 'Memverifikasi kredensial Apify ke server...', 'info');
-        setTimeout(() => {
-          showToast('Koneksi Terverifikasi!', 'Token Apify valid dan siap menerima task crawling.', 'success');
-        }, 1200);
-      });
-
-      // Sync Apify Data
-      document.getElementById('btnSyncApify').addEventListener('click', () => {
-        const btn = document.getElementById('btnSyncApify');
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menghubungi Apify...`;
-        btn.disabled = true;
-
-        setTimeout(() => {
-          btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> <span>Mulai Tarik Data Baru</span>`;
-          btn.disabled = false;
-          apifyModal.classList.add('hidden');
-
-          // Append fresh simulated Apify feed
-          const freshData = [
-            {
-              id: 'apify-' + Date.now(),
-              author: '@WargaBantenOnline',
-              platform: 'Twitter',
-              date: 'Baru saja',
-              text: 'Update live crawler Apify: Ketinggian abu vulkanik Anak Krakatau melandai sore ini. Terima kasih relawan pembagi masker di Cilegon!',
-              location: 'Cilegon, Banten',
-              sentiment: 'Positif',
-              category: 'Kesiapsiagaan & Mitigasi',
-              score: 0.88,
-              likes: 12
-            },
-            {
-              id: 'apify-' + (Date.now() + 1),
-              author: '@NelayanSelatSunda',
-              platform: 'Twitter',
-              date: 'Baru saja',
-              text: 'Perahu nelayan sementara sandar karena mata terasa pedih dan jarak pandang terbatas sekitar Pulau Sebesi.',
-              location: 'Pulau Sebesi, Lampung',
-              sentiment: 'Negatif',
-              category: 'Dampak Nelayan',
-              score: -0.70,
-              likes: 34
-            }
-          ];
-
-          currentPosts.unshift(...freshData);
-          recalculateMetrics();
-          renderPosts();
-          showToast('Sinkronisasi Sukses', '2 data opini publik terbaru berhasil ditarik dan diklasifikasikan!', 'success');
-        }, 1600);
-      });
-
-      // Analyze Modal toggle
-      const analyzeModal = document.getElementById('analyzeModal');
-      let lastAnalysisResult = null;
-
-      document.getElementById('btnOpenAnalyzeModal').addEventListener('click', () => {
-        analyzeModal.classList.remove('hidden');
-      });
-      document.getElementById('btnCloseAnalyzeModal').addEventListener('click', () => {
-        analyzeModal.classList.add('hidden');
-      });
-
-      // Process Sentiment Analysis
-      document.getElementById('btnProcessAnalysis').addEventListener('click', () => {
-        const text = document.getElementById('inputTestText').value.trim();
-        if (!text) {
-          showToast('Teks Kosong', 'Harap tuliskan kalimat opini masyarakat terlebih dahulu.', 'error');
-          return;
-        }
-
-        const res = evaluateLocalSentiment(text);
-        lastAnalysisResult = {
-          ...res,
-          text: text,
-          location: document.getElementById('inputTestLocation').value.trim() || 'Anyer, Banten'
-        };
-
-        const resultBox = document.getElementById('analysisResultBox');
-        const resBadge = document.getElementById('resBadge');
-        const resConfidence = document.getElementById('resConfidence');
-        const resKeywords = document.getElementById('resKeywords');
-        const btnAppend = document.getElementById('btnAppendToDataset');
-
-        resBadge.textContent = res.sentiment;
-        if (res.sentiment === 'Positif') {
-          resBadge.className = 'px-3 py-0.5 rounded-full text-xs font-black bg-pastel-mint text-pastel-darkgreen border border-pastel-sage';
-          resultBox.className = 'p-4 rounded-2xl border bg-pastel-mint/20 border-pastel-sage space-y-2';
-        } else if (res.sentiment === 'Negatif') {
-          resBadge.className = 'px-3 py-0.5 rounded-full text-xs font-black bg-pastel-rose text-pastel-berry border border-pastel-pink';
-          resultBox.className = 'p-4 rounded-2xl border bg-pastel-rose/20 border-pastel-pink space-y-2';
-        } else {
-          resBadge.className = 'px-3 py-0.5 rounded-full text-xs font-black bg-slate-100 text-slate-800 border border-slate-200';
-          resultBox.className = 'p-4 rounded-2xl border bg-slate-50 border-slate-200 space-y-2';
-        }
-
-        resConfidence.textContent = res.confidence;
-        resKeywords.textContent = res.keywords;
-
-        resultBox.classList.remove('hidden');
-        btnAppend.classList.remove('hidden');
-      });
-
-      // Append tested post to dataset
-      document.getElementById('btnAppendToDataset').addEventListener('click', () => {
+      byId('btnAppendToDataset').addEventListener('click', () => {
         if (!lastAnalysisResult) return;
-
-        const newPost = {
-          id: 'user-' + Date.now(),
-          author: '@PenggunaAktif',
-          platform: 'Uji Langsung',
-          date: 'Hari ini',
-          text: lastAnalysisResult.text,
-          location: lastAnalysisResult.location,
-          sentiment: lastAnalysisResult.sentiment,
-          category: 'Uji Coba Pengguna',
-          score: lastAnalysisResult.sentiment === 'Positif' ? 0.8 : (lastAnalysisResult.sentiment === 'Negatif' ? -0.8 : 0.0),
-          likes: 1
-        };
-
-        currentPosts.unshift(newPost);
+        currentPosts.unshift({ id: 'user-' + Date.now(), author: 'Komentar uji', platform: 'Uji pengguna', date: 'Baru ditambahkan', text: lastAnalysisResult.text, location: byId('inputTestLocation').value.trim(), sentiment: lastAnalysisResult.sentiment, category: 'Uji komentar', sourceUrl: '', kind: 'Uji pengguna' });
+        byId('searchInput').value = '';
+        byId('sentimentFilter').value = 'ALL';
+        displayedLimit = 8;
         recalculateMetrics();
         renderPosts();
-
-        // Reset and close
-        document.getElementById('inputTestText').value = '';
-        document.getElementById('analysisResultBox').classList.add('hidden');
-        document.getElementById('btnAppendToDataset').classList.add('hidden');
-        analyzeModal.classList.add('hidden');
-
-        showToast('Berhasil Ditambahkan', 'Opini baru telah masuk ke ringkasan & grafik data.', 'success');
-      });
-
-      // Export CSV
-      document.getElementById('btnExportData').addEventListener('click', () => {
-        let csvContent = "data:text/csv;charset=utf-8,ID,Penulis,Platform,Tanggal,Lokasi,Sentimen,Kategori,Teks\n";
-        currentPosts.forEach(p => {
-          const cleanText = p.text.replace(/"/g, '""');
-          csvContent += `"${p.id}","${p.author}","${p.platform}","${p.date}","${p.location}","${p.sentiment}","${p.category}","${cleanText}"\n`;
-        });
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `sentimen_abu_anak_krakatau_${new Date().toISOString().slice(0, 10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        showToast('Ekspor Berhasil', 'Dataset CSV sentimen publik berhasil diunduh.', 'success');
+        byId('analysisForm').reset();
+        byId('analysisResultBox').hidden = true;
+        byId('btnAppendToDataset').hidden = true;
+        lastAnalysisResult = null;
+        byId('analyzeModal').close();
+        showToast('Komentar uji ditambahkan. Ekspor CSV untuk menyimpannya.');
       });
     });
   </script>
